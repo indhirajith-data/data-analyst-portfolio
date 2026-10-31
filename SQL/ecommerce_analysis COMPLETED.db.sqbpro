@@ -1,0 +1,129 @@
+<?xml version="1.0" encoding="UTF-8"?><sqlb_project><db path="ecommerce_analysis,db.db" readonly="0" foreign_keys="1" case_sensitive_like="0" temp_store="0" wal_autocheckpoint="1000" synchronous="2"/><attached/><window><main_tabs open="structure browser pragmas query" current="3"/></window><tab_structure><column_width id="0" width="300"/><column_width id="1" width="0"/><column_width id="2" width="100"/><column_width id="3" width="1164"/><column_width id="4" width="0"/><expanded_item id="0" parent="1"/><expanded_item id="1" parent="1"/><expanded_item id="2" parent="1"/><expanded_item id="3" parent="1"/></tab_structure><tab_browse><table title="ONLINE_RETAIL" custom_title="0" dock_id="1" table="4,13:mainONLINE_RETAIL"/><dock_state state="000000ff00000000fd00000001000000020000043c000002b6fc0100000001fb000000160064006f0063006b00420072006f007700730065003101000000000000043c0000014b00ffffff000002580000000000000004000000040000000800000008fc00000000"/><default_encoding codec=""/><browse_table_settings><table schema="main" name="ONLINE_RETAIL" show_row_id="0" encoding="" plot_x_axis="" unlock_view_pk="_rowid_" freeze_columns="0"><sort/><column_widths><column index="1" value="65"/><column index="2" value="67"/><column index="3" value="280"/><column index="4" value="56"/><column index="5" value="132"/><column index="6" value="59"/><column index="7" value="75"/><column index="8" value="117"/></column_widths><filter_values/><conditional_formats/><row_id_formats/><display_formats/><hidden_columns/><plot_y_axes/><global_filter/></table></browse_table_settings></tab_browse><tab_sql><sql name="SQL 1*">--1. TOTAL SALES REVENUE
+-- Business Question: What is the total revenue?
+-- =========================================
+SELECT SUM(Quantity * UnitPrice) AS TOTAL_REVENUE
+FROM online_retail_fixed
+WHERE InvoiceNo NOT LIKE 'C%';
+-- =========================================
+-- 2. CANCELLED TRANSACTIONS
+-- Business Question: How many cancelled transaction rows are there?
+-- =========================================
+SELECT COUNT(InvoiceNo) AS CANCELLED_ROWS
+FROM online_retail_fixed
+WHERE InvoiceNo LIKE 'C%';
+-- =========================================
+--03. COUNTRY-WISE SALES ANALYSIS
+-- =========================================
+SELECT Country,
+SUM(Quantity * UnitPrice) AS TOTAL_SALES
+FROM online_retail_fixed
+WHERE InvoiceNo NOT LIKE 'C%'
+GROUP BY Country
+ORDER BY TOTAL_SALES DESC;
+-- =========================================
+-- 04. TOP 5 COUNTRIES BY SALES
+-- =========================================
+SELECT Country,
+SUM(Quantity * UnitPrice) AS TOTAL_SALES
+FROM online_retail_fixed
+WHERE InvoiceNo NOT LIKE 'C%'
+GROUP BY Country
+ORDER BY TOTAL_SALES DESC
+LIMIT 5;
+-- =========================================
+-- 05. TOP 5 PRODUCTS BY REVENUE
+-- =========================================
+SELECT Description,
+SUM(Quantity * UnitPrice) AS TOTAL_SALES
+FROM online_retail_fixed
+WHERE InvoiceNo NOT LIKE 'C%'
+GROUP BY Description
+ORDER BY TOTAL_SALES DESC
+LIMIT 5;
+-- =========================================
+-- 06. TOP 5 PRODUCTS EXCLUDING POSTAGE
+-- =========================================
+SELECT Description,
+SUM(Quantity * UnitPrice) AS TOTAL_SALES
+FROM online_retail_fixed
+WHERE InvoiceNo NOT LIKE 'C%'
+AND Description NOT LIKE 'DOTCOM POSTAGE'
+GROUP BY Description
+ORDER BY TOTAL_SALES DESC
+LIMIT 5;
+-- =========================================
+-- 7. TOP 5 CUSTOMERS BY REVENUE
+-- =========================================
+SELECT CustomerID,
+SUM(Quantity * UnitPrice) AS TOTAL_SALES
+FROM online_retail_fixed
+WHERE InvoiceNo NOT LIKE 'C%'
+AND CustomerID IS NOT NULL
+GROUP BY CustomerID
+ORDER BY TOTAL_SALES DESC
+LIMIT 5;
+-- =========================================
+-- 8. MONTH-WISE SALES ANALYSIS
+-- Business Question: Which month has the highest combined sales?
+-- =========================================
+SELECT SUBSTR(InvoiceDate, 1, INSTR(InvoiceDate, '/') - 1) AS MONTH,
+SUM(Quantity * UnitPrice) AS TOTAL_SALES
+FROM online_retail_fixed
+WHERE InvoiceNo NOT LIKE 'C%'
+GROUP BY MONTH
+ORDER BY TOTAL_SALES DESC
+LIMIT 5;
+-- =========================================
+-- 9. YEAR-WISE SALES ANALYSIS
+-- Business Question: Which year generated the highest sales?
+-- =========================================
+SELECT SUBSTR(
+SUBSTR(InvoiceDate, INSTR(InvoiceDate, '/') + 1),
+4, 4
+) AS YEAR,
+SUM(Quantity * UnitPrice) AS TOTAL_SALES
+FROM online_retail_fixed
+WHERE InvoiceNo NOT LIKE 'C%'
+GROUP BY YEAR
+ORDER BY TOTAL_SALES DESC;
+-- =========================================
+-- 10. YEAR AND MONTH-WISE SALES ANALYSIS
+-- Business Question: Which specific month generated the highest revenue?
+-- =========================================
+SELECT SUBSTR(
+SUBSTR(InvoiceDate, INSTR(InvoiceDate, '/') + 1),4,4) AS YEAR,
+SUBSTR(InvoiceDate, 1, INSTR(InvoiceDate, '/') - 1) AS MONTH,
+SUM(Quantity * UnitPrice) AS TOTAL_SALES
+FROM online_retail_fixed
+WHERE InvoiceNo NOT LIKE 'C%'
+GROUP BY YEAR, MONTH
+ORDER BY TOTAL_SALES DESC
+LIMIT 5;
+-- 11.unique order recieved in stores
+select count(DISTINCT(InvoiceNo))AS TOTAL_UNIQUE_ORDERS 
+FROM online_retail_fixed
+WHERE InvoiceNo NOT LIKE 'C%';
+-- 12 AVG ORDER VALUES
+SELECT sum(Quantity*UnitPrice)/count(DISTINCT(InvoiceNo)) AS AVG_ORDR_VALUES
+FROM online_retail_fixed
+WHERE InvoiceNo NOT LIKE 'C%';
+--13 REPEATED_CUST
+SELECT CustomerID, count(DISTINCT(InvoiceNo)) AS REPEAT_CUST
+FROM online_retail_fixed
+WHERE InvoiceNo NOT LIKE 'C%' AND CustomerID IS NOT NULL
+GROUP BY CustomerID
+HAVING REPEAT_CUST&gt;1;
+SELECT COUNT(*) AS TOTAL_REPEAT_CUST
+FROM (SELECT CustomerID FROM online_retail_fixed
+WHERE InvoiceNo NOT LIKE 'C%' AND CustomerID IS NOT NULL 
+GROUP BY CustomerID
+HAVING COUNT(DISTINCT(InvoiceNo))&gt;1);
+
+---14..TOP HIGH VALUE CUSTOMBER
+SELECT CustomerID, count(DISTINCT(InvoiceNo)) AS REPEAT_CUST
+FROM online_retail_fixed
+WHERE InvoiceNo NOT LIKE 'C%' AND CustomerID IS NOT NULL
+GROUP BY CustomerID
+HAVING REPEAT_CUST&gt;1
+ORDER BY REPEAT_CUST DESC
+LIMIT 5;</sql><current_tab id="0"/></tab_sql></sqlb_project>
