@@ -78,4 +78,5 @@ Cancelled Transaction Records| 9,288
 This project demonstrates practical SQL skills in data aggregation, sales analysis, customer segmentation, and extracting meaningful business insights from transactional data.
 
 10.Project Screenshots
-The screenshots folder contains query outputs for all 14 business questions analysed in this project
+
+-The screenshots folder contains query outputs for all 14 business questions analysed in this project
